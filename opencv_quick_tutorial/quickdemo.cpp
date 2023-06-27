@@ -75,8 +75,8 @@ void QuickDemo::operators_demo(Mat& image) {
 	//dst = image * m;
 	m = Scalar(50, 50, 50);
 	//multiply(image, m, dst);
-	add(image, m, dst);
-	//subtract(image, m, dst);
+	//add(image, m, dst);
+	subtract(image, m, dst);
 	//divide(image, m, dst);
 	
 
