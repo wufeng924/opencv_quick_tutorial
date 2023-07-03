@@ -15,4 +15,6 @@ class QuickDemo {
 		void color_style_demo(Mat& image);
 		void bitwise_demo(Mat& image);
 		void channels_demo(Mat& image);
+		void inrange_demo(Mat& image);
+		void pixel_statistic_demo(Mat& image);
 };

@@ -17,7 +17,7 @@ void QuickDemo::mat_creation_demo(Mat &image) {
 
 	//创建空白图像
 	Mat m3 = Mat::ones(Size(10, 10), CV_8UC3);
-	m3 = Scalar(255, 0, 255);
+	m3 = Scalar(255, 0, 0);
 	std::cout << "width: " << m3.cols << "  height: " << m3.rows << "  channels: " << m3.channels() << std::endl;
 	std::cout << m3 << std::endl;
 	/*imshow("m1", m1);
@@ -25,7 +25,8 @@ void QuickDemo::mat_creation_demo(Mat &image) {
 
 	Mat m4;
 	m3.copyTo(m4);
-	m4 = Scalar(0, 255, 255);
+	//m4 = m3.clone();
+	m4 = Scalar(0, 0, 255);
 	imshow("m4", m4);
 	imshow("m3", m3);
 }
@@ -236,4 +237,55 @@ void QuickDemo::channels_demo(Mat& image) {
 	imshow("Red", mv[0]);
 	imshow("Green", mv[1]);
 	imshow("Blue", mv[2]);
+
+	Mat dst;
+	mv[0] = 0;
+	mv[2] = 0;
+	merge(mv, dst);
+	imshow("绿色", dst);
+
+	int from_to[] = { 0,2,1,1,2,0 };
+	mixChannels(&image, 1, &dst, 1, from_to, 3);
+	imshow("通道混合", dst);
+	imshow("original image", image);
+}
+
+void QuickDemo::inrange_demo(Mat& image) {
+	Mat hsv;
+	cvtColor(image, hsv, COLOR_BGR2HSV);
+	Mat mask;
+	inRange(hsv, Scalar(100, 43, 46), Scalar(124, 255, 255), mask);
+	//imshow("mask", mask);  //msck为白底
+
+	Mat redback = Mat::zeros(image.size(), image.type());
+	redback = Scalar(40, 40, 200); //红色背景
+	bitwise_not(mask, mask); //mask为黑底
+	imshow("mask", mask);
+	image.copyTo(redback, mask); //将mask中不为0部分(白色像素点)对应的原图 拷贝到 redback上，mask通过inRange得到
+	imshow("roi区域提取", redback);
+}
+
+void QuickDemo::pixel_statistic_demo(Mat& image) {
+	double minv, maxv;
+	Point minLoc, maxLoc; //定义地址
+	std::vector<Mat> mv; //可存放Mat类型的容器
+	split(image, mv); //将多通道 拆分成 单通道（通道分离)
+	for (int i = 0; i < mv.size(); i++) {
+
+		//分别打印各个通道的数值
+		minMaxLoc(mv[i], &minv, &maxv, &minLoc, &maxLoc, Mat());
+		//求出图像的最大值和最小值及其位置
+		//参数一：输入单通道的数组
+		//参数二：返回最小值的指针
+		//参数三：返回最大值的指针
+		//参数四：返回最小值位置的指针
+		//参数五：返回最大值位置的指针
+		std::cout << "No.channels:" << i << "  minvalue:" << minv << "  maxvalue:" << maxv << std::endl;
+		
+	}
+
+	Mat mean, stddev;
+	meanStdDev(image, mean, stddev); //求出图像的均值 、方差
+	std::cout << "mean:" << mean << std::endl;
+	std::cout << "stddev:" << stddev << std::endl;
 }
