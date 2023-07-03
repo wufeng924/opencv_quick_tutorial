@@ -23,7 +23,8 @@ int main(int argc, char** argv) {
 	imshow("JPG", src);
 	//qd.key_demo(src);
 	//qd.color_style_demo(src);
-	qd.bitwise_demo(src);
+	//qd.bitwise_demo(src);
+	qd.channels_demo(src);
 	waitKey(0);
 	destroyAllWindows();
 	return 0;

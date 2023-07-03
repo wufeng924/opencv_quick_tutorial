@@ -229,3 +229,11 @@ void QuickDemo::bitwise_demo(Mat& image) {
 	bitwise_not(m1, dst);
 	imshow("ÏñËØÎ»²Ù×÷",dst);
 }
+
+void QuickDemo::channels_demo(Mat& image) {
+	std::vector<Mat> mv;
+	split(image, mv);
+	imshow("Red", mv[0]);
+	imshow("Green", mv[1]);
+	imshow("Blue", mv[2]);
+}
