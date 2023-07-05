@@ -289,3 +289,67 @@ void QuickDemo::pixel_statistic_demo(Mat& image) {
 	std::cout << "mean:" << mean << std::endl;
 	std::cout << "stddev:" << stddev << std::endl;
 }
+
+void QuickDemo::drawing_demo(Mat& image) {
+	Rect rect;
+	rect.x = 45;
+	rect.y = 40;
+	rect.width = 160;
+	rect.height = 90;
+	Mat bg = Mat::zeros(image.size(), image.type());
+	rectangle(bg, rect, Scalar(0, 0, 255), -1);
+	//circle(image, Point(125, 85), 70, Scalar(0, 255, 0), 2);
+	Mat dst;
+	addWeighted(image, 0.7, bg, 0.3, 0, dst); //融合两张图 image和bg
+	line(bg, Point(45, 40), Point(205, 130), Scalar(0, 255, 0), 4, LINE_AA, 0);
+	RotatedRect rrt;
+	rrt.center = Point(125, 85);
+	rrt.angle = 90;
+	rrt.size = Size(100, 200);
+	ellipse(bg, rrt, Scalar(255, 0, 0), 2);
+	imshow("output", bg);
+}
+
+void QuickDemo::randow_drawing() {
+	Mat canvas = Mat::zeros(Size(512, 512), CV_8UC3);
+	int h = canvas.rows;
+	int w = canvas.cols;
+	RNG rng(12345); //产生随机数（12345为随机数的种子，默认的
+	while (true) {
+		int c = waitKey(100);
+		if (c == 27) {
+			break;
+		}
+		int x1 = rng.uniform(0, w), y1 = rng.uniform(0, h);
+		int x2 = rng.uniform(0, w), y2 = rng.uniform(0, h);
+		int r = rng.uniform(0, 255), g = rng.uniform(0, 255), b = rng.uniform(0, 255);
+		line(canvas, Point(x1, y1), Point(x2, y2), Scalar(r, g, b), 4, LINE_AA, 0);
+		imshow("随机绘制", canvas);
+	}
+}
+
+void QuickDemo::polyline_drawing() {
+	Mat canvas = Mat::zeros(Size(512, 512), CV_8UC3);
+	Point p1(150, 100);//第一个点的坐标
+	Point p2(350, 200);//  二
+	Point p3(240, 300);//  三
+	Point p4(150, 300);//  四
+	Point p5(50, 200);//  五
+	std::vector<Point> pts;//搞一个容器，用来装 点
+	pts.push_back(p1);//将点放进容器内
+	pts.push_back(p2);//因 未初始化数组容量，所以要用 push_back 操作
+	pts.push_back(p3);//若 已初始化，可以用 数组下标 来操作
+	pts.push_back(p4);
+	pts.push_back(p5);
+	//fillPoly(canvas, pts, Scalar(0, 255, 0), LINE_AA); //填充多边形
+	//polylines(canvas, pts, true, Scalar(0, 0, 255), 2, LINE_AA); //绘制多边形
+	//imshow("多边形绘制", canvas);
+
+	std::vector<std::vector<Point>> contours; //搞一个容器，用来装 多边形的点集
+	contours.push_back(pts); //将一个多边形的点集放进容器内，作为一个元素
+	drawContours(canvas, contours, -1, Scalar(0, 0, 255), -1);
+	//参数倒1：<0表示填充，>0表示线宽
+	//参数二：多边形的点集
+	//参数三：-1为绘制全部的多边形；0为绘制第一个，1为绘制第二个，以此类推
+	imshow("多边形填充", canvas);
+}

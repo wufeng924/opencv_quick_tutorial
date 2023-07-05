@@ -28,7 +28,10 @@ int main(int argc, char** argv) {
 	//qd.bitwise_demo(src);
 	//qd.channels_demo(src);
 	//qd.inrange_demo(src); //À¶µ×±ä»»  11.jpg
-	qd.pixel_statistic_demo(src);
+	//qd.pixel_statistic_demo(src);
+	//qd.drawing_demo(src);
+	//qd.randow_drawing();
+	qd.polyline_drawing();
 	waitKey(0);
 	destroyAllWindows();
 	return 0;
