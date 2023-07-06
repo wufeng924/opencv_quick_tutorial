@@ -6,7 +6,7 @@ using namespace cv;
 using namespace std;
 
 int main(int argc, char** argv) {
-	Mat src = imread("C:/Users/18221/Desktop/Images/1.jpg");
+	Mat src = imread("C:/Users/18221/Desktop/Images/9.jpg");
 	if (src.empty()) {
 		cout<<"could not load image...\n";
 		return -1;
@@ -16,7 +16,7 @@ int main(int argc, char** argv) {
 
 	QuickDemo qd;
 
-	imshow("JPG", src);
+	//imshow("JPG", src);
 
 	//qd.colorSpace_Demo(src);
 	//qd.mat_creation_demo(src);
@@ -31,7 +31,8 @@ int main(int argc, char** argv) {
 	//qd.pixel_statistic_demo(src);
 	//qd.drawing_demo(src);
 	//qd.randow_drawing();
-	qd.polyline_drawing();
+	//qd.polyline_drawing();
+	qd.mouse_drawing(src);
 	waitKey(0);
 	destroyAllWindows();
 	return 0;

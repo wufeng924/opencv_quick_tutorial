@@ -353,3 +353,70 @@ void QuickDemo::polyline_drawing() {
 	//参数三：-1为绘制全部的多边形；0为绘制第一个，1为绘制第二个，以此类推
 	imshow("多边形填充", canvas);
 }
+
+
+Point sp(-1, -1);
+Point ep(-1, -1);
+Mat temp;
+static void on_draw(int event, int x, int y, int flags, void* userdata) {
+	Mat image = *((Mat*)userdata);
+	//若鼠标的左键按下
+	if (event == EVENT_LBUTTONDOWN) {
+		//此时鼠标的起始位置坐标
+		sp.x = x;
+		sp.y = y;
+		std::cout << "Start Point : " << sp << std::endl;
+	}
+	//若鼠标的左键抬起
+	else if (event == EVENT_LBUTTONUP) {
+		//此时鼠标的结束位置坐标
+		ep.x = x;
+		ep.y = y;
+		int dx = ep.x - sp.x;
+		int dy = ep.y - sp.y;
+		if (dx > 0 && dy > 0) {
+			Rect box(sp.x, sp.y, dx, dy);
+			rectangle(image, box, Scalar(0, 255, 0), 2, LINE_AA);
+			imshow("鼠标绘制", image);
+			imshow("ROI区域", image(box));
+			//复位，为下一次绘制做准备
+			sp.x = -1;
+			sp.y = -1;
+		}
+	}
+	//若鼠标有移动过
+	else if (event == EVENT_MOUSEMOVE) {
+		if (sp.x > 0 && sp.y > 0) {
+			ep.x = x;
+			ep.y = y;
+			int dx = ep.x - sp.x;
+			int dy = ep.y - sp.y;
+			if (dx > 0 && dy > 0) {
+				Rect box(sp.x, sp.y, dx, dy);
+
+				//OpenCV中的clone()和直接赋值（ = ）都会导致共享数据区
+				//也就是相当于C++的引用(&)，使用copy，才会获取新的Mat
+				//image = temp.clone();
+				
+				//为了不将鼠标移动过程中的框也显示出来
+				//copyTo是实现图像roi操作的正确方法
+				temp.copyTo(image); 
+
+				//https://blog.csdn.net/yangshengwei230612/article/details/102758136
+
+				rectangle(image, box, Scalar(0, 255, 0), 2, LINE_AA);
+				
+				imshow("鼠标绘制", image);
+			}
+		}
+	}
+
+}
+
+
+void QuickDemo::mouse_drawing(Mat& image) {
+	namedWindow("鼠标绘制", WINDOW_AUTOSIZE);
+	setMouseCallback("鼠标绘制", on_draw, (void*)(&image));
+	imshow("鼠标绘制", image);
+	temp = image.clone();
+}
