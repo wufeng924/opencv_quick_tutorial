@@ -32,7 +32,8 @@ int main(int argc, char** argv) {
 	//qd.drawing_demo(src);
 	//qd.randow_drawing();
 	//qd.polyline_drawing();
-	qd.mouse_drawing(src);
+	//qd.mouse_drawing(src);
+	qd.norm_demo(src);
 	waitKey(0);
 	destroyAllWindows();
 	return 0;

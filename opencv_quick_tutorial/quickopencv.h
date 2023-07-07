@@ -21,4 +21,5 @@ class QuickDemo {
 		void randow_drawing();
 		void polyline_drawing();
 		void mouse_drawing(Mat& image);
+		void norm_demo(Mat& image);
 };

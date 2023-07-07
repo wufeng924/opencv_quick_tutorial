@@ -376,9 +376,15 @@ static void on_draw(int event, int x, int y, int flags, void* userdata) {
 		int dy = ep.y - sp.y;
 		if (dx > 0 && dy > 0) {
 			Rect box(sp.x, sp.y, dx, dy);
-			rectangle(image, box, Scalar(0, 255, 0), 2, LINE_AA);
-			imshow("鼠标绘制", image);
-			imshow("ROI区域", image(box));
+			if (ep.x <= 521 && ep.y <= 647) {
+				temp.copyTo(image);
+				imshow("ROI区域", image(box));
+			}
+			else std::cout << "Error region~~~" << std::endl;
+
+			//rectangle(image, box, Scalar(0, 255, 0), 2, LINE_AA);
+			//imshow("鼠标绘制", image);
+			
 			//复位，为下一次绘制做准备
 			sp.x = -1;
 			sp.y = -1;
@@ -420,3 +426,23 @@ void QuickDemo::mouse_drawing(Mat& image) {
 	imshow("鼠标绘制", image);
 	temp = image.clone();
 }
+
+
+void QuickDemo::norm_demo(Mat& image) {
+	Mat dst;
+	std::cout << image.type() << std::endl;  //16 -> CV_8UC3
+
+	image.convertTo(image, CV_32F); //将image的数据转换成浮点型float32位数据  21 -> CV_32F
+	std::cout << image.type() << std::endl;
+
+	//进行归一化操作
+	//参数一：要进行归一化的图片  参数二：归一化后要输出的图片
+	//参数三：alpha   参数四：beta    参数五：归一化方法
+	normalize(image, dst, 1.0, 0, NORM_MINMAX);
+	std::cout << dst.type() << std::endl;
+	imshow("图像数据归一化", dst);
+
+	//CV_8UC3   原本为 3通道，每个通道8位的UC（无符号）类型
+	//CV_32FC3  转换后 3通道，每个通道32位的浮点数类型
+}
+
