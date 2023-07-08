@@ -22,4 +22,8 @@ class QuickDemo {
 		void polyline_drawing();
 		void mouse_drawing(Mat& image);
 		void norm_demo(Mat& image);
+		void resize_demo(Mat& image);
+		void flip_demo(Mat& image);
+		void rotate_demo(Mat& image);
+		void video_demo(Mat& image);
 };

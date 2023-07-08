@@ -446,3 +446,93 @@ void QuickDemo::norm_demo(Mat& image) {
 	//CV_32FC3  转换后 3通道，每个通道32位的浮点数类型
 }
 
+void QuickDemo::resize_demo(Mat& image) {
+	Mat zoomin, zoomout;
+	int h = image.rows;
+	int w = image.cols;
+	resize(image, zoomin, Size(w / 2, h / 2), 0, 0, INTER_LINEAR);
+	imshow("zoomin", zoomin);
+	resize(image, zoomout, Size(w * 2, h * 2), 0, 0, INTER_LINEAR);
+	imshow("zoomout", zoomout);
+}
+
+void QuickDemo::flip_demo(Mat& image) {
+	Mat dst;
+	flip(image, dst, 1);  // -1  0  1 
+	imshow("flip", dst);
+}
+
+void QuickDemo::rotate_demo(Mat& image) {
+	Mat dst, M;
+	int h = image.rows;
+	int w = image.cols;
+	M = getRotationMatrix2D(Point2f(w / 2, h / 2), 45.0, 1.0); //获得旋转矩阵 M
+	 //参数一：原来图像的中心点位置参数二：旋转角度(逆时针)参数三：图像本身大小的放大缩小
+
+	double cos = abs(M.at<double>(0, 0));//取绝对值
+	double sin = abs(M.at<double>(0, 1));
+	/*
+	[w'] = [ cos  sin] * [w]
+	[h']   [-sin  cos]   [h],
+	M = [ cos  sin  0]
+		[-sin  cos  0], （第三列用来控制平移）
+	*/
+
+	double nw = cos * w + sin * h;//旋转后图像所占矩形的宽
+	double nh = sin * w + cos * h;//旋转后图像所占矩形的高
+
+	//更新 新的中心  （将新中心平移到正确位置上）
+	M.at<double>(0, 2) += (nw / 2 - w / 2);//将矩形的宽高 加上偏差量  （新M的第一列最后的值）
+	M.at<double>(1, 2) += (nh / 2 - h / 2);//将矩形的宽高 加上偏差量  （新M的第二列最后的值）
+
+	warpAffine(image, dst, M, Size(nw, nh), INTER_LINEAR, 0, Scalar(0, 255, 0)); //进行旋转
+	//参数四：原来图像的中心点位置    参数五：插值方式
+	//参数六：边缘的处理方式          参数七：边缘底图的颜色
+	imshow("旋转演示", dst);
+}
+
+
+void QuickDemo::video_demo(Mat& image) {
+	//VideoCapture capture(0); //调用电脑摄像头
+
+	VideoCapture capture("C:/Users/18221/Desktop/code/漫威：这个男孩，他长大了.mp4");  //读取视频地址
+
+	int frame_width = capture.get(CAP_PROP_FRAME_WIDTH); //获取视频的宽度
+	int frame_height = capture.get(CAP_PROP_FRAME_HEIGHT); //获取视频的高度
+	int count = capture.get(CAP_PROP_FRAME_COUNT); //获取视频总的帧数
+	//fps是衡量处理视频的能力 （一秒钟处理多少张图片的能力，处理速度越快则越好）
+	double fps = capture.get(CAP_PROP_FPS);
+	std::cout << "frame width：" << frame_width << std::endl;
+	std::cout << "frame height：" << frame_height << std::endl;
+	std::cout << "FPS：" << fps << std::endl;
+	std::cout << "Number of frame：" << count << std::endl;
+
+	VideoWriter writer("C:/Users/18221/Desktop/Images", capture.get(CAP_PROP_FOURCC), fps, Size(frame_width, frame_height), true);
+	//参数一：保存地址	参数二：获取图片的格式(编码方式)
+	//参数三：图片的帧数	参数四：视频宽高	参数五：与原来颜色保持一致
+	//等全部运行完再去查看视频是否保存成功
+
+
+	Mat frame;
+	while (true) {
+		capture.read(frame);
+
+		int h = frame.rows;
+		int w = frame.cols;
+		resize(frame, frame, Size(w / 2, h / 2), 0, 0, INTER_LINEAR);
+		flip(frame, frame, 1);
+		cvtColor(frame, frame, COLOR_BGR2GRAY);
+
+		if (frame.empty()) {
+			break;
+		}
+		imshow("frame", frame);
+		writer.write(frame);
+		int c = waitKey(1);
+		if (c == 27) {
+			break;
+		}
+	}
+	writer.release();
+	capture.release(); //释放相机内存资源
+}
