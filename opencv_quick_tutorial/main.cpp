@@ -6,7 +6,7 @@ using namespace cv;
 using namespace std;
 
 int main(int argc, char** argv) {
-	Mat src = imread("C:/Users/18221/Desktop/Images/2.jpg");
+	Mat src = imread("C:/Users/18221/Desktop/Images/11.jpg");
 	if (src.empty()) {
 		cout<<"could not load image...\n";
 		return -1;
@@ -16,7 +16,7 @@ int main(int argc, char** argv) {
 
 	QuickDemo qd;
 
-	imshow("JPG", src);
+	//imshow("JPG", src);
 
 	//qd.colorSpace_Demo(src);
 	//qd.mat_creation_demo(src);
@@ -37,7 +37,13 @@ int main(int argc, char** argv) {
 	//qd.resize_demo(src);
 	//qd.flip_demo(src);
 	//qd.rotate_demo(src);
-	qd.video_demo(src);
+	//qd.video_demo(src);
+	//qd.histogram_demo(src);
+	//qd.histogram_eq_demo(src);
+	//qd.blur_demo(src);
+	//qd.gaussian_blur_demo(src);
+	//qd.bifilter_demo(src);
+	qd.face_detection_demo();
 	waitKey(0);
 	destroyAllWindows();
 	return 0;

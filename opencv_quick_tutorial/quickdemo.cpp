@@ -232,8 +232,8 @@ void QuickDemo::bitwise_demo(Mat& image) {
 }
 
 void QuickDemo::channels_demo(Mat& image) {
-	std::vector<Mat> mv;
-	split(image, mv);
+	std::vector<Mat> mv; 
+	split(image, mv);  //三通道分离
 	imshow("Red", mv[0]);
 	imshow("Green", mv[1]);
 	imshow("Blue", mv[2]);
@@ -536,3 +536,209 @@ void QuickDemo::video_demo(Mat& image) {
 	writer.release();
 	capture.release(); //释放相机内存资源
 }
+
+void QuickDemo::histogram_demo(Mat& image) {
+	//三通道分离
+	std::vector<Mat> bgr_plane;
+	split(image, bgr_plane);
+	//定义参数变量
+	const int channels[1] = { 0 };
+	const int bins[1] = { 256 };//总共 256 个灰度级别
+	float hranges[2] = { 0,255 };//每个通道的取值范围是 0 到 255
+	const float* ranges[1] = { hranges };
+	Mat b_hist;
+	Mat g_hist;
+	Mat r_hist;
+	//计算 Blue，Green，Red 通道的直方图
+	calcHist(&bgr_plane[0], 1, 0, Mat(), b_hist, 1, bins, ranges);//第一个通道
+	calcHist(&bgr_plane[1], 1, 0, Mat(), g_hist, 1, bins, ranges);
+	calcHist(&bgr_plane[2], 1, 0, Mat(), r_hist, 1, bins, ranges);
+	//参数一：要计算直方图的数据					参数二：1表示只有一张图(输入图像的格式)
+	//参数三：需要统计直方图的第几个通道			参数四：掩模，mask必须是8位的数组且和参数一的大小一致
+	//参数五：b_hist表示直方图的输出				参数六：1表示维度是一维的(输出直方图的维度dims)
+	//参数七：直方图中每个维度需分成的区间个数		参数八：ranges表示直方图的取值范围(区间)
+
+	//显示直方图
+	int hist_w = 512;//设置 画布宽度 为512
+	int hist_h = 400;//设置 画布高度 为400
+	int bin_w = cvRound((double)hist_w / bins[0]);//每个 bin 占的宽度
+	  //cvRound()四舍五入返回数值
+	Mat histImage = Mat::zeros(hist_h, hist_w, CV_8UC3);//创建画布
+
+	//归一化直方图数据（归一化到大小一致的范围内）
+	//histImage.rows是为了不超出画布许可的高度范围
+	normalize(b_hist, b_hist, 0, histImage.rows, NORM_MINMAX, -1, Mat());
+	normalize(g_hist, g_hist, 0, histImage.rows, NORM_MINMAX, -1, Mat());
+	normalize(r_hist, r_hist, 0, histImage.rows, NORM_MINMAX, -1, Mat());
+	//参数一：要进行归一化的图片		参数二：归一化后要输出的图片
+	//参数三：alpha			参数四：beta			参数五：归一化方法
+
+	//绘制直方图曲线
+	for (int i = 1; i < bins[0]; i++) {//每个bin占2个像素的位置
+		line(histImage, Point(bin_w * (i - 1), hist_h - cvRound(b_hist.at<float>(i - 1))),
+			Point(bin_w * (i), hist_h - cvRound(b_hist.at<float>(i))), Scalar(255, 0, 0), 2, 3, 0);
+		line(histImage, Point(bin_w * (i - 1), hist_h - cvRound(g_hist.at<float>(i - 1))),
+			Point(bin_w * (i), hist_h - cvRound(g_hist.at<float>(i))), Scalar(0, 255, 0), 2, 3, 0);
+		line(histImage, Point(bin_w * (i - 1), hist_h - cvRound(r_hist.at<float>(i - 1))),
+			Point(bin_w * (i), hist_h - cvRound(r_hist.at<float>(i))), Scalar(0, 0, 255), 2, 3, 0);
+		//从前一个位置到当前位置连上一条线
+	}
+	//显示直方图
+	namedWindow("Histogram Demo", WINDOW_AUTOSIZE);
+	imshow("Histogram Demo", histImage);
+}
+
+
+void QuickDemo::histogram_2d_demo(Mat& image) {
+	//2D直方图
+	Mat hsv, hs_hist;
+	cvtColor(image, hsv, COLOR_BGR2HSV);//先把RGB色彩空间转换到hsv的空间中
+	int hbins = 30, sbins = 32;
+	int hist_bins[] = { hbins, sbins };//h和s这两个维度需分成的 区间个数
+	float h_range[] = { 0,180 };//h的取值范围
+	float s_range[] = { 0,256 };//s的取值范围
+	const float* hs_ranges[] = { h_range, s_range };
+	int hs_channels[] = { 0,1 };
+	//计算通道的直方图
+	calcHist(&hsv, 1, hs_channels, Mat(), hs_hist, 2, hist_bins, hs_ranges, true, false);
+	//参数一：要计算直方图的数据参数二：1表示只有一张图(输入图像的格式)
+	//参数三：需要统计直方图的第几个通道(前两个)参数四：掩模，mask必须是8位的数组且和参数一的大小一致
+	//参数五：b_hist表示直方图的输出参数六：2表示维度是二维的(输出直方图的维度dims)
+	//参数七：直方图中每个维度需分成的区间个数参数八：hs_ranges表示直方图的取值范围(区间)
+	//参数九：是否对得到的直方图进行归一化处理参数十：在多个图像时，是否累计计算像素值的个数
+	double maxVal = 0;
+	minMaxLoc(hs_hist, 0, &maxVal, 0, 0);//寻找最大值和最小值及其位置（这里先找到最大值）
+	//参数一：输入单通道的数组
+	//参数二：返回最小值的指针参数三：返回最大值的指针
+	//参数四：返回最小值位置的指针参数五：返回最大值位置的指针
+	int scale = 10;
+	Mat hist2d_image = Mat::zeros(sbins * scale, hbins * scale, CV_8UC3);//创建空白图像
+	for (int h = 0; h < hbins; h++) {
+		for (int s = 0; s < sbins; s++) {
+			float binVal = hs_hist.at<float>(h, s);
+			int intensity = cvRound(binVal * 255 / maxVal);
+			rectangle(hist2d_image, Point(h * scale, s * scale),
+				Point((h + 1) * scale - 1, (s + 1) * scale - 1), Scalar::all(intensity), -1);
+		}
+	}
+	//显示直方图
+	//applyColorMap(hist2d_image, hist2d_image, COLORMAP_JET);//产生伪色彩图像
+	namedWindow("H-S Histogram", WINDOW_AUTOSIZE);
+	imshow("H-S Histogram", hist2d_image);
+	//imwrite("F:/文件夹/C++/OPENCV4入门学习/图/hist_2d.png", hist2d_image);
+}
+
+void QuickDemo::histogram_eq_demo(Mat& image) {
+	//Mat gray;
+	//cvtColor(image, gray, COLOR_BGR2GRAY);
+	//imshow("gray", gray);
+	//Mat dst;
+	//equalizeHist(gray, dst);
+	//imshow("直方图均衡化演示", dst);
+	////直方图均衡化 (目的是对比度拉伸，即 对比度会更强)
+	////用途：用于图像增强，人脸检测，卫星遥感(提升图像质量)。
+	////opencv中，均衡化的图像只支持单通道
+
+	//对三通道的图像进行直方图均衡化
+	Mat imageRGB[3];
+	split(image, imageRGB);
+	for (int i = 0; i < 3; i++)
+	{
+		equalizeHist(imageRGB[i], imageRGB[i]);
+	}
+	merge(imageRGB, 3, image);
+	imshow("直方图均衡化图像增强效果", image);
+
+}
+
+
+void QuickDemo::blur_demo(Mat& image) {
+	Mat dst;
+	blur(image, dst, Size(5, 5), Point(-1, -1));
+	//输出图像会变模糊，且卷积核尺寸越大则越模糊
+	//参数三：卷积核的大小	参数四：卷积的起始点
+	//Point(-1, -1)则默认取核的中心
+	//参数三中：
+	//Size(15, 1) 左右晃动的模糊  1行15列
+	//Size(1, 15) 上下晃动的模糊  1列15行
+	imshow("图像卷积操作", dst);
+}
+
+void QuickDemo::gaussian_blur_demo(Mat& image) {
+	Mat dst;
+	GaussianBlur(image, dst, Size(5, 5), 15);
+	//高斯kernel中心值最大，离中心越远值越小
+	//参数三：高斯矩阵的大小（正数且奇数）
+	// Error: Assertion failed (ksize.width > 0 && ksize.width % 2 == 1 && 
+	//			ksize.height > 0 && ksize.height % 2 == 1) in cv::createGaussianKernels 
+	//参数四：sigmaX 和 sigmaY 为15 
+	//参数三和四都 值越大则越模糊，且参数四的影响更明显
+	imshow("高斯模糊操作", dst);
+}
+
+void QuickDemo::bifilter_demo(Mat& image) {
+	Mat dst;
+	bilateralFilter(image, dst, 0, 100, 10);
+	//考虑空间临近信息与颜色相似信息，在滤除噪声、平滑图像的同时，又做到边缘保存
+	//可做磨皮操作
+	imshow("双边模糊", dst);
+}
+
+void QuickDemo::face_detection_demo() {
+	//加载权重文件
+	std::string root_dir = "C:/Users/18221/Desktop/Images/face_detector/";
+	//读出一个网络文件（读取深度学习Tensorflow模型以及配置文件）
+	//pb文件就是他的模型；pbtxt是配置文件
+	dnn::Net net = dnn::readNetFromTensorflow(root_dir + "opencv_face_detector_uint8.pb", root_dir + "opencv_face_detector.pbtxt");
+
+	VideoCapture capture(0);//加载视频
+	//VideoCapture capture("E:/2021.9.26备份/图片/Camera Roll/人脸素材.mp4");//加载视频
+	Mat frame;//定义一个二值化的 frame
+	while (true) {
+		capture.read(frame);
+		flip(frame, frame, 1);// 1 左右翻转 y对称 （镜像）
+		if (frame.empty())//如果读入失败
+		{
+			break;//若视频为空，则跳出操作
+		}
+		//读模型
+		Mat blob = dnn::blobFromImage(frame, 1.0, Size(300, 300), Scalar(104, 177, 123), false, false);//对图像进行预处理
+		net.setInput(blob);//准备数据（blob就是 NCHW n多少个 c通道数 h高度 w宽度
+		//获取数据
+		Mat probs = net.forward();//获取推理后的数据（完成推理）
+		
+		Mat detectionMat(probs.size[2], probs.size[3], CV_32F, probs.ptr<float>());//构建Mat图像
+
+		std::cout << detectionMat << std::endl;
+		/*
+		输出：（得出的blob）
+		第一个维度：有多少张图像，每张图有个编号；
+		维度二：image对应第几批次第几张图；
+		维度三：有多少个框
+		维度四：每个框有7个值，有7列
+		*/
+		//解析结果
+		for (int i = 0; i < detectionMat.rows; i++) {
+			float confidence = detectionMat.at<float>(i, 2); //置信度
+			if (confidence > 0.5) {//大于0.5就是人脸
+			//获取矩形坐标（第3，4，5，6参数）
+				//c++类型强制转换		static_cast<DataType>(Value)
+				//c风格				(DataType)Value
+				//预标准c++			DataType(Value)
+				int x1 = static_cast<int>(detectionMat.at<float>(i, 3) * frame.cols);
+				int y1 = static_cast<int>(detectionMat.at<float>(i, 4) * frame.rows);
+				int x2 = static_cast<int>(detectionMat.at<float>(i, 5) * frame.cols);
+				int y2 = static_cast<int>(detectionMat.at<float>(i, 6) * frame.rows);
+				Rect box(x1, y1, x2 - x1, y2 - y1);
+				rectangle(frame, box, Scalar(0, 255, 0), 2, 8, 0);
+			}
+		}
+		imshow("人脸检测演示", frame);
+		int c = waitKey(1);//等待10ms（1s = 1000ms），做视频处理都是1
+		if (c == 27) {//按 esc 退出应用程序
+			break;
+		}
+	}
+
+}
+
